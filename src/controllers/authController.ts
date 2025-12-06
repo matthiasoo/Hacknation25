@@ -68,5 +68,14 @@ export const login = catchAsync(async (req: Request, res: Response, next: NextFu
     res.status(200).json({
         status: 'success',
         token,
+        data: {
+            user: {
+                id: user.id,
+                email: user.email,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                totalPoints: user.totalPoints
+            },
+        },
     });
 });
