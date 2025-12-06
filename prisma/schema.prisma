@@ -1,0 +1,65 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+   url = env("DATABASE_URL")
+}
+
+model User {
+  id           String          @id @default(uuid())
+  email        String          @unique
+  passwordHash String
+  firstName    String
+  lastName     String
+  totalPoints  Int             @default(0)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  visited      UserLocations[]
+}
+
+model Location {
+  id          String                @id @default(uuid())
+  name        String
+  latitude    Float
+  longitude   Float
+  category    LocationCategory
+  imageUrl    String?
+  description String?
+  timeline    LocationDescription[]
+  visitors    UserLocations[]
+}
+
+model LocationDescription {
+  id          String   @id @default(uuid())
+  locationId  String
+  location    Location @relation(fields: [locationId], references: [id])
+  year        Int
+  description String
+  audioUrl    String?
+  imageUrl    String?
+
+  @@index([locationId])
+}
+
+model UserLocations {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  locationId String
+  location   Location @relation(fields: [locationId], references: [id])
+  createdAt  DateTime @default(now())
+
+  @@unique([userId, locationId])
+  @@index([userId])
+  @@index([locationId])
+}
+
+enum LocationCategory {
+  MEMORIAL
+  BUILDING
+  MUSEUM
+  PARK
+  OTHER
+}
