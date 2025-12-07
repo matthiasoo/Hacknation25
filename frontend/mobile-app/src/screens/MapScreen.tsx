@@ -116,15 +116,7 @@ export const MapScreen = () => {
                         return next;
                     });
 
-                    // 2. Send Notification
-                    await Notifications.scheduleNotificationAsync({
-                        content: {
-                            title: "Jesteś blisko!",
-                            body: `Odkryłeś: ${loc.name}`,
-                            data: { locationId: loc.id },
-                        },
-                        trigger: null,
-                    });
+                    // 2. Notification handled by background task now
 
                     // 3. Register visit on backend (Check-in)
                     try {

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Image, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Image, ActivityIndicator, Alert } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { getLocationById } from '../api/locations';
 import { LocationData } from '../types/location';
@@ -18,8 +18,15 @@ export const LocationDetailScreen = () => {
     useEffect(() => {
         const fetch = async () => {
             try {
-                const data = await getLocationById(locationId);
-                setLocation(data);
+                const { location, isNewDiscovery, pointsAwarded } = await getLocationById(locationId);
+                setLocation(location);
+
+                if (isNewDiscovery) {
+                    Alert.alert(
+                        "Odkryto zabytek!",
+                        `Gratulacje! Odkryłeś nowe miejsce i otrzymujesz ${pointsAwarded} punktów.`
+                    );
+                }
             } catch (error) {
                 console.error('Error fetching details', error);
             } finally {

@@ -57,6 +57,23 @@ export const ProfileScreen = () => {
                 />
             )}
 
+            <GradientButton
+                title="Test Notification"
+                onPress={async () => {
+                    await import('expo-notifications').then(Notifications => {
+                        Notifications.scheduleNotificationAsync({
+                            content: {
+                                title: "Test Notification",
+                                body: "If you see this, local notifications work!",
+                                data: { locationId: 'test-id' },
+                            },
+                            trigger: null,
+                        });
+                    });
+                }}
+                style={{ marginBottom: 10 }}
+                colors={[theme.colors.secondary, theme.colors.primary]}
+            />
             <GradientButton title="Logout" onPress={signOut} style={styles.logoutButton} colors={[theme.colors.error, theme.colors.error]} />
         </View>
     );

@@ -14,8 +14,21 @@ Notifications.setNotificationHandler({
         shouldShowAlert: true,
         shouldPlaySound: true,
         shouldSetBadge: false,
+        shouldShowBanner: true,
+        shouldShowList: true,
     }),
 });
+
+if (Platform.OS === 'android') {
+    Notifications.setNotificationChannelAsync('default', {
+        name: 'default',
+        importance: Notifications.AndroidImportance.MAX,
+        vibrationPattern: [0, 250, 250, 250],
+        lightColor: '#FF231F7C',
+    });
+}
+
+const notifiedLocations = new Set<string>();
 
 TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }: any) => {
     if (error) {
@@ -40,15 +53,22 @@ TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }: any) => {
 
                 // 100 meters threshold
                 if (distance < 100) {
-                    await Notifications.scheduleNotificationAsync({
-                        content: {
-                            title: "You are close!",
-                            body: `Znajdujesz się obok ${loc.name}`,
-                            data: { locationId: loc.id },
-                        },
-                        trigger: null, // show immediately
-                    });
-                    // TODO: Mark as notified to avoid spam
+                    if (!notifiedLocations.has(loc.id)) {
+                        await Notifications.scheduleNotificationAsync({
+                            content: {
+                                title: "Jesteś blisko!",
+                                body: `Znajdujesz się obok ${loc.name}`,
+                                data: { locationId: loc.id },
+                            },
+                            trigger: null, // show immediately
+                        });
+                        notifiedLocations.add(loc.id);
+                    }
+                } else {
+                    // Optional: Reset if user moves away (e.g. > 200m) to allow re-notification later
+                    if (distance > 200) {
+                        notifiedLocations.delete(loc.id);
+                    }
                 }
             }
         } catch (err) {
@@ -63,6 +83,10 @@ export const startLocationUpdates = async () => {
 
     const { status: backStatus } = await Location.requestBackgroundPermissionsAsync();
     if (backStatus !== 'granted') return;
+
+    if (Platform.OS === 'android') {
+        await Notifications.requestPermissionsAsync();
+    }
 
     await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
         accuracy: Location.Accuracy.Balanced,

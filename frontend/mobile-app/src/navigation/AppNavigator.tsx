@@ -3,6 +3,8 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
+import { NotificationHandler } from '../components/NotificationHandler';
+import { startLocationUpdates } from '../services/LocationTask';
 
 import { LoginScreen } from '../screens/LoginScreen';
 import { MapScreen } from '../screens/MapScreen';
@@ -49,6 +51,12 @@ const AppTabs = () => {
 export const AppNavigator = () => {
     const { token, isLoading } = useAuth();
 
+    React.useEffect(() => {
+        if (token) {
+            startLocationUpdates().catch(console.error);
+        }
+    }, [token]);
+
     if (isLoading) {
         // Return a splash screen or null
         return null;
@@ -56,6 +64,7 @@ export const AppNavigator = () => {
 
     return (
         <NavigationContainer>
+            <NotificationHandler />
             <Stack.Navigator screenOptions={{ headerShown: false }}>
                 {token ? (
                     <>

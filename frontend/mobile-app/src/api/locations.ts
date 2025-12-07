@@ -6,7 +6,11 @@ export const getLocations = async (): Promise<LocationData[]> => {
     return data.data.locations;
 };
 
-export const getLocationById = async (id: string): Promise<LocationData> => {
+export const getLocationById = async (id: string): Promise<{ location: LocationData; isNewDiscovery: boolean; pointsAwarded: number }> => {
     const { data } = await client.get(`/locations/${id}`);
-    return data;
+    return {
+        location: data.data.location,
+        isNewDiscovery: data.isNewDiscovery,
+        pointsAwarded: data.pointsAwarded
+    };
 };

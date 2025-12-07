@@ -38,6 +38,7 @@ export const getLocation = catchAsync(async (req: Request, res: Response, next: 
 
     const location = await prisma.location.findUnique({
         where: { id },
+        include: { timeline: true },
     });
 
     if (!location) {
