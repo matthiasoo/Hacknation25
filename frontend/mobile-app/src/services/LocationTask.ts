@@ -115,13 +115,15 @@ export const startLocationUpdates = async () => {
     }
 
     await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
-        accuracy: Location.Accuracy.Balanced,
-        timeInterval: 20000, // 20 seconds
+        accuracy: Location.Accuracy.High,
+        timeInterval: 5000, // 5 seconds
         distanceInterval: 10, // 10 meters
         foregroundService: {
             notificationTitle: "Bydgoszcz - Ścieżki Pamięci",
             notificationBody: "Śledzenie lokalizacji w celu odkrywania miejsc...",
         },
+        pausesUpdatesAutomatically: false,
+        activityType: Location.ActivityType.Other,
         showsBackgroundLocationIndicator: true // iOS
     });
 };

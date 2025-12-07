@@ -2,9 +2,9 @@ export const theme = {
     colors: {
         background: '#FFFFFF',
         surface: '#F5F5F5',
-        primary: '#2196F3', // Friendly Blue
-        secondary: '#FF9800', // Warm Orange
-        accent: '#4CAF50', // Nature Green
+        primary: '#2196F3',
+        secondary: '#6C63FF',
+        accent: '#d91ab6ff',
         text: '#212121',
         textSecondary: '#757575',
         error: '#D32F2F',
@@ -26,8 +26,8 @@ export const theme = {
         xl: 30,
     },
     typography: {
-        h1: { fontSize: 28, fontWeight: '700' as const, color: '#212121' },
-        h2: { fontSize: 22, fontWeight: '700' as const, color: '#212121' },
+        h1: { fontSize: 42, fontWeight: '700' as const, color: '#212121' },
+        h2: { fontSize: 28, fontWeight: '700' as const, color: '#212121' },
         h3: { fontSize: 18, fontWeight: '600' as const, color: '#212121' },
         body: { fontSize: 16, fontWeight: '400' as const, color: '#424242' },
         caption: { fontSize: 12, fontWeight: '400' as const, color: '#757575' },

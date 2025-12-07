@@ -52,7 +52,7 @@ export const MapScreen = () => {
         (async () => {
             let { status } = await Location.requestForegroundPermissionsAsync();
             if (status !== 'granted') {
-                Alert.alert('Permission to access location was denied');
+                Alert.alert('Odmówiono dostępu do lokalizacji');
                 return;
             }
 
@@ -179,7 +179,7 @@ export const MapScreen = () => {
                                     <Text style={styles.calloutTitle}>
                                         {loc.name} {isVisited ? '✓' : ''}
                                     </Text>
-                                    <Text style={styles.calloutDesc}>Click to view details</Text>
+                                    <Text style={styles.calloutDesc}>Kliknij, aby zobaczyć szczegóły</Text>
                                 </View>
                             </Callout>
                         </Marker>

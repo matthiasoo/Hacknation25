@@ -37,13 +37,13 @@ export const ProfileScreen = () => {
         <View style={styles.container}>
             <View style={styles.header}>
                 <View style={styles.avatar}>
-                    <Text style={styles.avatarText}>{user?.firstName?.[0]}{user?.lastName?.[0]}</Text>
+                    <Text style={styles.avatarText}>{user?.firstName?.[0]}</Text>
                 </View>
-                <Text style={theme.typography.h2}>{user?.firstName} {user?.lastName}</Text>
-                <Text style={theme.typography.caption}>Points: {user?.totalPoints || 0}</Text>
+                <Text style={theme.typography.h2}>{user?.firstName}</Text>
+                <Text style={theme.typography.caption}>Punkty: {user?.totalPoints || 0}</Text>
             </View>
 
-            <Text style={styles.sectionTitle}>Visited Locations</Text>
+            <Text style={styles.sectionTitle}>Odwiedzone miejsca</Text>
 
             {loading ? (
                 <ActivityIndicator color={theme.colors.primary} />
@@ -53,28 +53,12 @@ export const ProfileScreen = () => {
                     renderItem={renderItem}
                     keyExtractor={item => item.id}
                     contentContainerStyle={styles.list}
-                    ListEmptyComponent={<Text style={styles.emptyText}>No locations visited yet.</Text>}
+                    ListEmptyComponent={<Text style={styles.emptyText}>Nie odwiedzono jeszcze żadnych miejsc.</Text>}
                 />
             )}
 
-            <GradientButton
-                title="Test Notification"
-                onPress={async () => {
-                    await import('expo-notifications').then(Notifications => {
-                        Notifications.scheduleNotificationAsync({
-                            content: {
-                                title: "Test Notification",
-                                body: "If you see this, local notifications work!",
-                                data: { locationId: 'test-id' },
-                            },
-                            trigger: null,
-                        });
-                    });
-                }}
-                style={{ marginBottom: 10 }}
-                colors={[theme.colors.secondary, theme.colors.primary]}
-            />
-            <GradientButton title="Logout" onPress={signOut} style={styles.logoutButton} colors={[theme.colors.error, theme.colors.error]} />
+            <GradientButton title="Wyloguj się" onPress={signOut} style={styles.logoutButton} colors={['#E0E0E0', '#BDBDBD']}
+                textStyle={{ color: '#757575' }} />
         </View>
     );
 };

@@ -42,8 +42,8 @@ const AppTabs = () => {
                 },
             })}
         >
-            <Tab.Screen name="Map" component={MapScreen} />
-            <Tab.Screen name="Profile" component={ProfileScreen} />
+            <Tab.Screen name="Map" component={MapScreen} options={{ tabBarLabel: 'Mapa' }} />
+            <Tab.Screen name="Profile" component={ProfileScreen} options={{ tabBarLabel: 'Profil' }} />
         </Tab.Navigator>
     );
 };

@@ -41,7 +41,7 @@ export const LocationDetailScreen = () => {
     }
 
     if (!location) {
-        return <View style={styles.center}><Text style={styles.errorText}>Location not found</Text></View>;
+        return <View style={styles.center}><Text style={styles.errorText}>Nie znaleziono lokalizacji</Text></View>;
     }
 
     return (
@@ -56,16 +56,15 @@ export const LocationDetailScreen = () => {
 
                     <Text style={styles.description}>{location.description}</Text>
 
-                    <Text style={styles.sectionTitle}>Timeline</Text>
+                    <Text style={[styles.sectionTitle, { marginTop: theme.spacing.l }]}>Historia</Text>
                     {location.timeline?.sort((a, b) => a.year - b.year).map((item, index) => (
                         <TimelineItem key={item.id} item={item} isLast={index === location.timeline!.length - 1} />
                     ))}
 
                     <GradientButton
-                        title="Chat with Guide"
+                        title="Dowiedz się więcej"
                         onPress={() => navigation.navigate('Chatbot', { locationId: location.id, locationName: location.name })}
                         style={styles.chatButton}
-                        colors={[theme.colors.secondary, theme.colors.accent]}
                     />
                 </View>
             </ScrollView>

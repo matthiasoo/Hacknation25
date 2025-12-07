@@ -15,7 +15,7 @@ interface GradientButtonProps {
 export const GradientButton: React.FC<GradientButtonProps> = ({
     onPress,
     title,
-    colors = [theme.colors.primary, theme.colors.secondary],
+    colors = [theme.colors.secondary, theme.colors.accent],
     style,
     textStyle,
     isLoading = false,
@@ -26,7 +26,7 @@ export const GradientButton: React.FC<GradientButtonProps> = ({
                 colors={colors}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 0 }}
-                style={styles.gradient}
+                style={[styles.gradient, { borderRadius: theme.borderRadius.l }]}
             >
                 {isLoading ? (
                     <ActivityIndicator color={theme.colors.text} />

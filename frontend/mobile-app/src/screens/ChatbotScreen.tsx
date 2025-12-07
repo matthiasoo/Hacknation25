@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, FlatList, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, FlatList, KeyboardAvoidingView, Platform, TextInput } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { theme } from '../theme';
-import { Input } from '../components/Input';
 import { GradientButton } from '../components/GradientButton';
 
 interface Message {
@@ -22,7 +21,7 @@ export const ChatbotScreen = () => {
         // Initial greeting
         const initialMsg: Message = {
             id: '1',
-            text: `Hi! I'm your guide for ${locationName}. Ask me anything about its history!`,
+            text: `Cześć! Jestem Twoim przewodnikiem po ${locationName}. Zapytaj mnie o historię tego miejsca!`,
             sender: 'bot',
         };
         setMessages([initialMsg]);
@@ -44,7 +43,7 @@ export const ChatbotScreen = () => {
         setTimeout(() => {
             const botMsg: Message = {
                 id: (Date.now() + 1).toString(),
-                text: `That's an interesting question about ${locationName}! Did you know it was renovated recently? (Mock Response)`,
+                text: `To ciekawe pytanie o ${locationName}! Czy wiesz, że to miejsce było niedawno odnawiane? (Przykładowa odpowiedź)`,
                 sender: 'bot',
             };
             setMessages(prev => [...prev, botMsg]);
@@ -69,7 +68,7 @@ export const ChatbotScreen = () => {
             style={styles.container}
         >
             <View style={styles.header}>
-                <Text style={theme.typography.h2}>Chatting about {locationName}</Text>
+                <Text style={theme.typography.h2}>Rozmowa o {locationName}</Text>
             </View>
             <FlatList
                 ref={listRef}
@@ -80,14 +79,22 @@ export const ChatbotScreen = () => {
                 onContentSizeChange={() => listRef.current?.scrollToEnd({ animated: true })}
             />
             <View style={styles.inputContainer}>
-                <Input
-                    placeholder="Type a message..."
-                    value={inputText}
-                    onChangeText={setInputText}
-                    style={styles.input}
-                    onSubmitEditing={handleSend}
+                <View style={styles.inputWrapper}>
+                    <TextInput
+                        placeholder="Wpisz wiadomość..."
+                        value={inputText}
+                        onChangeText={setInputText}
+                        style={styles.input}
+                        placeholderTextColor={theme.colors.textSecondary}
+                        onSubmitEditing={handleSend}
+                    />
+                </View>
+                <GradientButton
+                    title="Wyślij"
+                    onPress={handleSend}
+                    style={styles.sendButton}
+                    textStyle={{ fontSize: 14 }}
                 />
-                <GradientButton title="Send" onPress={handleSend} style={styles.sendButton} />
             </View>
         </KeyboardAvoidingView>
     );
@@ -102,23 +109,29 @@ const styles = StyleSheet.create({
         padding: theme.spacing.m,
         backgroundColor: theme.colors.surface,
         alignItems: 'center',
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(0,0,0,0.05)',
+        elevation: 2,
     },
     listContent: {
         padding: theme.spacing.m,
+        paddingBottom: theme.spacing.xl,
     },
     messageBubble: {
         maxWidth: '80%',
         padding: theme.spacing.m,
-        borderRadius: theme.borderRadius.m,
+        borderRadius: theme.borderRadius.l,
         marginBottom: theme.spacing.s,
     },
     userBubble: {
         alignSelf: 'flex-end',
         backgroundColor: theme.colors.primary,
+        borderBottomRightRadius: 2,
     },
     botBubble: {
         alignSelf: 'flex-start',
         backgroundColor: theme.colors.surface,
+        borderBottomLeftRadius: 2,
     },
     messageText: {
         ...theme.typography.body,
@@ -128,13 +141,30 @@ const styles = StyleSheet.create({
         padding: theme.spacing.m,
         flexDirection: 'row',
         alignItems: 'center',
+        borderTopWidth: 1,
+        borderTopColor: 'rgba(0,0,0,0.05)',
+        backgroundColor: theme.colors.background,
+    },
+    inputWrapper: {
+        flex: 1,
+        backgroundColor: theme.colors.surface,
+        borderRadius: 24,
+        paddingHorizontal: theme.spacing.m,
+        height: 48,
+        justifyContent: 'center',
+        marginRight: theme.spacing.s,
+        borderWidth: 1,
+        borderColor: 'rgba(0,0,0,0.05)',
     },
     input: {
-        flex: 1,
-        marginBottom: 0,
-        marginRight: theme.spacing.s,
+        ...theme.typography.body,
+        color: theme.colors.text,
+        padding: 0,
     },
     sendButton: {
-        width: 80,
+        height: 48,
+        paddingHorizontal: theme.spacing.l,
+        borderRadius: theme.borderRadius.l,
+        justifyContent: 'center',
     },
 });

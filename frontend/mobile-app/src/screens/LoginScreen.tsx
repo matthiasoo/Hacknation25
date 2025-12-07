@@ -13,7 +13,7 @@ export const LoginScreen = () => {
 
     const handleLogin = async () => {
         if (!username.trim()) {
-            Alert.alert('Required', 'Please enter your name');
+            Alert.alert('Wymagane', 'Proszę podać imię');
             return;
         }
 
@@ -25,7 +25,7 @@ export const LoginScreen = () => {
         const email = `${normalizedName}@hacknation.test`;
         const password = 'hackathon_default_pass';
         const firstName = username;
-        const lastName = 'Guest';
+        const lastName = 'GG';
 
         try {
             // 1. Try to Login first
@@ -53,9 +53,9 @@ export const LoginScreen = () => {
             console.error("Login failed:", e);
             if (e.response) {
                 console.error("Response data:", e.response.data);
-                Alert.alert('Error', `Server Error: ${e.response.status} - ${e.response.data.message || e.message}`);
+                Alert.alert('Błąd', `Błąd serwera: ${e.response.status} - ${e.response.data.message || e.message}`);
             } else {
-                Alert.alert('Error', 'Could not access the system. Please try again.');
+                Alert.alert('Błąd', 'Nie można uzyskać dostępu do systemu. Spróbuj ponownie.');
             }
         } finally {
             setLoading(false);
@@ -63,7 +63,7 @@ export const LoginScreen = () => {
     };
 
     const handleRegisterPress = () => {
-        Alert.alert('Registration', 'Registration is currently disabled. Please just log in with your name.');
+        Alert.alert('Rejestracja', 'Rejestracja jest obecnie wyłączona. Zaloguj się podając imię.');
     };
 
     return (
@@ -72,32 +72,25 @@ export const LoginScreen = () => {
                 <View style={styles.header}>
                     <Text style={theme.typography.h1}>Bydgoszcz</Text>
                     <Text style={theme.typography.h2}>Ścieżki Pamięci</Text>
-                    <Text style={styles.subtitle}>Discover History</Text>
+                    <Text style={styles.subtitle}>Odkrywaj historię</Text>
                 </View>
 
                 <View style={styles.form}>
                     <Input
-                        label="What is your name?"
+                        label="Podaj imie"
                         value={username}
                         onChangeText={setUsername}
-                        placeholder="e.g. Explorer Jan"
+                        placeholder="np. Jan"
                         autoCapitalize="words"
                     />
 
                     <GradientButton
-                        title="Start Exploring"
+                        title="Start"
                         onPress={handleLogin}
                         isLoading={loading}
                         style={styles.button}
                     />
 
-                    <GradientButton
-                        title="Register"
-                        onPress={handleRegisterPress}
-                        style={[styles.button, styles.disabledButton]}
-                        colors={['#E0E0E0', '#BDBDBD']}
-                        textStyle={{ color: '#757575' }}
-                    />
                 </View>
             </ScrollView>
         </View>
@@ -115,12 +108,12 @@ const styles = StyleSheet.create({
         padding: theme.spacing.l,
     },
     header: {
-        marginBottom: theme.spacing.xxl,
+        marginBottom: 60,
         alignItems: 'center',
     },
     subtitle: {
         ...theme.typography.caption,
-        fontSize: 16,
+        fontSize: 22,
         marginTop: theme.spacing.s,
         color: theme.colors.primary,
     },
