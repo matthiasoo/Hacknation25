@@ -2,8 +2,8 @@ import 'dotenv/config';
 
 export default {
   expo: {
-    name: "mobile-app",
-    slug: "mobile-app",
+    name: "BydgoszczGO!",
+    slug: "bydgoszczgo",
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/icon.png",
@@ -27,7 +27,7 @@ export default {
       },
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
-      package: "com.maciekm789.mobileapp",
+      package: "com.hacknation25.mobileapp",
       config: {
         googleMaps: {
           apiKey: process.env.GOOGLE_MAPS_API_KEY // <--- TUTAJ JEST KLUCZ
