@@ -1,12 +1,15 @@
+// Actually fix imports
 import * as TaskManager from 'expo-task-manager';
 import * as Location from 'expo-location';
 import * as Notifications from 'expo-notifications';
-import { getLocations } from '../api/locations';
-import { LocationData } from '../types/location';
-import { getDistance } from 'geolib'; // Need to install geolib or implement haversine
+import * as SecureStore from 'expo-secure-store';
+import { getLocations, getLocationById } from '../api/locations';
+import client from '../api/client';
+import { getDistance } from 'geolib';
 import { Platform } from 'react-native';
 
 export const LOCATION_TASK_NAME = 'background-location-task';
+const notifiedLocations = new Set<string>();
 
 // Configure notifications
 Notifications.setNotificationHandler({
@@ -15,20 +18,19 @@ Notifications.setNotificationHandler({
         shouldPlaySound: true,
         shouldSetBadge: false,
         shouldShowBanner: true,
-        shouldShowList: true,
+        shouldShowList: true
     }),
 });
 
+// Create a channel for high priority notifications (Android)
 if (Platform.OS === 'android') {
-    Notifications.setNotificationChannelAsync('default', {
-        name: 'default',
-        importance: Notifications.AndroidImportance.MAX,
+    Notifications.setNotificationChannelAsync('proximity-alert', {
+        name: 'Proximity Alerts',
+        importance: Notifications.AndroidImportance.HIGH,
         vibrationPattern: [0, 250, 250, 250],
         lightColor: '#FF231F7C',
     });
 }
-
-const notifiedLocations = new Set<string>();
 
 TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }: any) => {
     if (error) {
@@ -42,10 +44,34 @@ TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }: any) => {
         if (!userLoc) return;
 
         try {
-            // ideally fetch from local storage to save battery/data
+            // Get Token
+            const token = await SecureStore.getItemAsync('token');
+            const userString = await SecureStore.getItemAsync('user');
+
+            // If no token, maybe we shouldn't track or just show generic info?
+            // Continuing for now.
+
             const locations = await getLocations();
+            let visitedIds = new Set<string>();
+
+            if (userString) {
+                const user = JSON.parse(userString);
+                // Optimally we'd fetch visited locations here, but that might be expensive on every BG update
+                // For MVP, we can try to fetch, or rely on local storage if we synced it.
+                // Let's invoke the API to be safe and accurate
+                try {
+                    const { data: visitedData } = await client.get(`/users/${user.id}/visited`);
+                    if (visitedData?.data?.visited) {
+                        visitedData.data.visited.forEach((v: any) => visitedIds.add(v.locationId || v.id));
+                    }
+                } catch (e) {
+                    console.log("BG: Failed to fetch visited");
+                }
+            }
 
             for (const loc of locations) {
+                if (visitedIds.has(loc.id)) continue;
+
                 const distance = getDistance(
                     { latitude: userLoc.coords.latitude, longitude: userLoc.coords.longitude },
                     { latitude: loc.latitude, longitude: loc.longitude }
@@ -90,11 +116,12 @@ export const startLocationUpdates = async () => {
 
     await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
         accuracy: Location.Accuracy.Balanced,
-        timeInterval: 10000,
-        distanceInterval: 50,
+        timeInterval: 20000, // 20 seconds
+        distanceInterval: 10, // 10 meters
         foregroundService: {
-            notificationTitle: "Visiting Bydgoszcz",
-            notificationBody: "Tracking your location to find historical sites",
-        }
+            notificationTitle: "Bydgoszcz - Ścieżki Pamięci",
+            notificationBody: "Śledzenie lokalizacji w celu odkrywania miejsc...",
+        },
+        showsBackgroundLocationIndicator: true // iOS
     });
 };

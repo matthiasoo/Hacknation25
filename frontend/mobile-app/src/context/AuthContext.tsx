@@ -7,6 +7,7 @@ interface AuthContextData extends AuthState {
     signIn: (token: string, user: User) => Promise<void>;
     signOut: () => Promise<void>;
     restoreToken: () => Promise<void>;
+    refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextData>({} as AuthContextData);
@@ -55,8 +56,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         restoreToken();
     }, []);
 
+    const refreshUser = async () => {
+        try {
+            const token = await SecureStore.getItemAsync('token');
+            if (!token) return;
+
+            const { data } = await client.get('/users/me'); // Assuming this endpoint exists and returns { user: ... }
+            if (data && data.data && data.data.user) {
+                const refreshedUser = data.data.user;
+                await SecureStore.setItemAsync('user', JSON.stringify(refreshedUser));
+                setState(prev => ({ ...prev, user: refreshedUser }));
+            }
+        } catch (error) {
+            console.error('Failed to refresh user data', error);
+        }
+    };
+
     return (
-        <AuthContext.Provider value={{ ...state, signIn, signOut, restoreToken }}>
+        <AuthContext.Provider value={{ ...state, signIn, signOut, restoreToken, refreshUser }}>
             {children}
         </AuthContext.Provider>
     );

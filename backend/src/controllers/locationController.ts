@@ -62,7 +62,7 @@ export const getLocation = catchAsync(async (req: Request, res: Response, next: 
         if (!existingVisit) {
             // First visit! Award points.
             isNewDiscovery = true;
-            pointsAwarded = 50; // Example points
+            pointsAwarded = 1; // 1 point per visit
 
             // Transaction to ensure data integrity
             await prisma.$transaction([
