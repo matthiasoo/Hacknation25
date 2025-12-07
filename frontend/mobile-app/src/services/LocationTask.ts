@@ -119,11 +119,11 @@ export const startLocationUpdates = async () => {
         timeInterval: 5000, // 5 seconds
         distanceInterval: 10, // 10 meters
         foregroundService: {
-            notificationTitle: "Bydgoszcz - Ścieżki Pamięci",
+            notificationTitle: "BydgoszczGo!",
             notificationBody: "Śledzenie lokalizacji w celu odkrywania miejsc...",
         },
-        pausesUpdatesAutomatically: false,
-        activityType: Location.ActivityType.Other,
-        showsBackgroundLocationIndicator: true // iOS
+        // pausesUpdatesAutomatically: false,
+        // activityType: Location.ActivityType.Other,
+        // showsBackgroundLocationIndicator: true // iOS
     });
 };

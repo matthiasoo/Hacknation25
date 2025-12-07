@@ -3,7 +3,7 @@ import 'dotenv/config';
 export default {
   expo: {
     name: "BydgoszczGO!",
-    slug: "bydgoszczgo",
+    slug: "mobile-app",
     version: "1.0.0",
     orientation: "portrait",
     icon: "./assets/icon.png",
@@ -16,8 +16,15 @@ export default {
     },
     ios: {
       supportsTablet: true,
+      // Dodano opisy uprawnień dla iOS (dobra praktyka, żeby buildy iOS nie ostrzegały)
+      infoPlist: {
+        NSLocationWhenInUseUsageDescription: "Aplikacja potrzebuje Twojej lokalizacji, aby pokazać ciekawe miejsca w pobliżu.",
+        NSLocationAlwaysAndWhenInUseUsageDescription: "Aplikacja potrzebuje lokalizacji w tle, aby powiadomić Cię o atrakcjach.",
+        NSLocationAlwaysUsageDescription: "Aplikacja śledzi lokalizację w tle dla powiadomień.",
+        UIBackgroundModes: ["location", "fetch"]
+      },
       config: {
-        googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY // Dodane dla iOS
+        googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY
       }
     },
     android: {
@@ -28,17 +35,37 @@ export default {
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
       package: "com.hacknation25.mobileapp",
+      // --- SEKCJA UPRAWNIEŃ (WAŻNE) ---
+      permissions: [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_LOCATION", // Wymagane dla Android 14+
+        "POST_NOTIFICATIONS",          // Wymagane dla Android 13+
+        "VIBRATE",
+        "RECEIVE_BOOT_COMPLETED"       // Opcjonalne: pozwala wstawać usłudze po restarcie telefonu
+      ],
       config: {
         googleMaps: {
-          apiKey: process.env.GOOGLE_MAPS_API_KEY // <--- TUTAJ JEST KLUCZ
+          apiKey: process.env.GOOGLE_MAPS_API_KEY
         }
       }
     },
     web: {
       favicon: "./assets/favicon.png"
     },
+    // --- SEKCJA PLUGINÓW (WAŻNE) ---
     plugins: [
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-notifications", // Dodane, bo używasz powiadomień
+      [
+        "expo-location",
+        {
+          "isAndroidBackgroundLocationEnabled": true, // To dodaje usługę tła do Manifestu
+          "isAndroidForegroundServiceEnabled": true   // To pozwala na stałe powiadomienie "BydgoszczGO!"
+        }
+      ]
     ],
     extra: {
       eas: {

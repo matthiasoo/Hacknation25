@@ -70,8 +70,7 @@ export const LoginScreen = () => {
         <View style={styles.container}>
             <ScrollView contentContainerStyle={styles.content}>
                 <View style={styles.header}>
-                    <Text style={theme.typography.h1}>Bydgoszcz</Text>
-                    <Text style={theme.typography.h2}>Ścieżki Pamięci</Text>
+                    <Text style={theme.typography.h1}>BydgoszczGo!</Text>
                     <Text style={styles.subtitle}>Odkrywaj historię</Text>
                 </View>
 

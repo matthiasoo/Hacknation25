@@ -39,20 +39,27 @@ export const ChatbotScreen = () => {
             sender: 'user',
         };
 
+        // Aktualizujemy UI od razu
         setMessages(prev => [...prev, userMsg]);
         setInputText('');
         setIsLoading(true);
 
         try {
-            const chatHistory = messages.map(msg => ({
-                role: msg.sender === 'user' ? 'user' : 'assistant',
-                content: msg.text
-            }));
+            // POPRAWKA 1: Filtrowanie historii
+            // Pomijamy wiadomość powitalną (id: '1') i błędy przy wysyłaniu do API
+            // Zapewnia to czystą strukturę System -> User -> Assistant -> User
+            const chatHistory = messages
+                .filter(msg => msg.id !== '1' && msg.sender !== 'bot' || (msg.sender === 'bot' && !msg.text.startsWith('Przepraszam')))
+                .map(msg => ({
+                    role: msg.sender === 'user' ? 'user' : 'assistant',
+                    content: msg.text
+                }));
 
             const response = await axios.post(
                 'https://api.groq.com/openai/v1/chat/completions',
                 {
-                    model: 'llama3-8b-8192',
+                    // POPRAWKA 2: Użycie stabilniejszej nazwy modelu (opcjonalnie)
+                    model: 'llama-3.1-8b-instant',
                     messages: [
                         {
                             role: 'system',
@@ -70,7 +77,7 @@ export const ChatbotScreen = () => {
                 }
             );
 
-            const botResponse = response.data.choices[0]?.message?.content || 'Przepraszam, nie potrafię teraz odpowiedzieć.';
+            const botResponse = response.data.choices[0]?.message?.content;
 
             const botMsg: Message = {
                 id: (Date.now() + 1).toString(),
@@ -78,11 +85,14 @@ export const ChatbotScreen = () => {
                 sender: 'bot',
             };
             setMessages(prev => [...prev, botMsg]);
-        } catch (error) {
-            console.error('Groq API Error:', error);
+
+        } catch (error: any) {
+            // POPRAWKA 3: Dokładne logowanie błędu
+            console.error('Groq API Error Details:', JSON.stringify(error.response?.data || error.message, null, 2));
+
             const errorMsg: Message = {
                 id: (Date.now() + 1).toString(),
-                text: 'Przepraszam, wystąpił błąd podczas łączenia z przewodnikiem.',
+                text: 'Przepraszam, wystąpił błąd. Spróbuj ponownie.',
                 sender: 'bot',
             };
             setMessages(prev => [...prev, errorMsg]);
