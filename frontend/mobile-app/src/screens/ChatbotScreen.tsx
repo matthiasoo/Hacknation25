@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, FlatList, KeyboardAvoidingView, Platform, TextInput } from 'react-native';
+import { View, Text, StyleSheet, FlatList, KeyboardAvoidingView, Platform, TextInput, ActivityIndicator } from 'react-native';
+import axios from 'axios';
 import { useRoute } from '@react-navigation/native';
 import { theme } from '../theme';
 import { GradientButton } from '../components/GradientButton';
@@ -15,7 +16,9 @@ export const ChatbotScreen = () => {
     const { locationName } = route.params;
     const [messages, setMessages] = useState<Message[]>([]);
     const [inputText, setInputText] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
     const listRef = useRef<FlatList>(null);
+    const groqApiKey = process.env.EXPO_PUBLIC_GROQ_API_KEY;
 
     useEffect(() => {
         // Initial greeting
@@ -27,8 +30,8 @@ export const ChatbotScreen = () => {
         setMessages([initialMsg]);
     }, []);
 
-    const handleSend = () => {
-        if (!inputText.trim()) return;
+    const handleSend = async () => {
+        if (!inputText.trim() || isLoading) return;
 
         const userMsg: Message = {
             id: Date.now().toString(),
@@ -38,16 +41,54 @@ export const ChatbotScreen = () => {
 
         setMessages(prev => [...prev, userMsg]);
         setInputText('');
+        setIsLoading(true);
 
-        // Mock response
-        setTimeout(() => {
+        try {
+            const chatHistory = messages.map(msg => ({
+                role: msg.sender === 'user' ? 'user' : 'assistant',
+                content: msg.text
+            }));
+
+            const response = await axios.post(
+                'https://api.groq.com/openai/v1/chat/completions',
+                {
+                    model: 'llama3-8b-8192',
+                    messages: [
+                        {
+                            role: 'system',
+                            content: `Jesteś przewodnikiem turystycznym po Bydgoszczy. Twoim zadaniem jest opowiadanie ciekawostek i historii o miejscu: ${locationName}. Bądź pomocny, uprzejmy i odpowiadaj krótko i zwięźle. Odpowiadaj w języku polskim.`
+                        },
+                        ...chatHistory,
+                        { role: 'user', content: userMsg.text }
+                    ]
+                },
+                {
+                    headers: {
+                        'Authorization': `Bearer ${groqApiKey}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+
+            const botResponse = response.data.choices[0]?.message?.content || 'Przepraszam, nie potrafię teraz odpowiedzieć.';
+
             const botMsg: Message = {
                 id: (Date.now() + 1).toString(),
-                text: `To ciekawe pytanie o ${locationName}! Czy wiesz, że to miejsce było niedawno odnawiane? (Przykładowa odpowiedź)`,
+                text: botResponse,
                 sender: 'bot',
             };
             setMessages(prev => [...prev, botMsg]);
-        }, 1000);
+        } catch (error) {
+            console.error('Groq API Error:', error);
+            const errorMsg: Message = {
+                id: (Date.now() + 1).toString(),
+                text: 'Przepraszam, wystąpił błąd podczas łączenia z przewodnikiem.',
+                sender: 'bot',
+            };
+            setMessages(prev => [...prev, errorMsg]);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const renderItem = ({ item }: { item: Message }) => {
@@ -87,14 +128,21 @@ export const ChatbotScreen = () => {
                         style={styles.input}
                         placeholderTextColor={theme.colors.textSecondary}
                         onSubmitEditing={handleSend}
+                        editable={!isLoading}
                     />
                 </View>
-                <GradientButton
-                    title="Wyślij"
-                    onPress={handleSend}
-                    style={styles.sendButton}
-                    textStyle={{ fontSize: 14 }}
-                />
+                {isLoading ? (
+                    <View style={[styles.sendButton, { backgroundColor: 'transparent' }]}>
+                        <ActivityIndicator size="small" color={theme.colors.primary} />
+                    </View>
+                ) : (
+                    <GradientButton
+                        title="Wyślij"
+                        onPress={handleSend}
+                        style={styles.sendButton}
+                        textStyle={{ fontSize: 14 }}
+                    />
+                )}
             </View>
         </KeyboardAvoidingView>
     );
