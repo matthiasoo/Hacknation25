@@ -8,6 +8,7 @@ import { getLocations, getLocationById } from '../api/locations';
 import { getVisitedLocations } from '../api/users';
 import { LocationData } from '../types/location';
 import { useAuth } from '../context/AuthContext';
+import { startLocationUpdates } from '../services/LocationTask';
 import * as Notifications from 'expo-notifications';
 
 // Simple Haversine for distance (meters)
@@ -37,12 +38,14 @@ Notifications.setNotificationHandler({
 
 export const MapScreen = () => {
     const navigation = useNavigation<any>();
-    const { user } = useAuth();
+    const { user, refreshUser } = useAuth();
     const [locations, setLocations] = useState<LocationData[]>([]);
     const [visitedIds, setVisitedIds] = useState<Set<string>>(new Set());
     const [userLocation, setUserLocation] = useState<Location.LocationObject | null>(null);
 
     console.log('Visited IDs:', [...visitedIds]);
+
+    const [isReady, setIsReady] = useState(false);
 
     // 1. Get User Location Permission & Start Watcher
     useEffect(() => {
@@ -53,7 +56,7 @@ export const MapScreen = () => {
                 return;
             }
 
-            // Start watching position
+            // Start watching position (Foreground for UI)
             await Location.watchPositionAsync({
                 accuracy: Location.Accuracy.High,
                 timeInterval: 2000,
@@ -61,29 +64,38 @@ export const MapScreen = () => {
             }, (newLoc) => {
                 setUserLocation(newLoc);
             });
+
+            // Start Background Task
+            startLocationUpdates().catch(e => console.error("Failed to start BG location", e));
         })();
     }, []);
 
-    // 2. Fetch Data
+    // 2. Fetch Data (Locations + Visited)
     useEffect(() => {
         const loadData = async () => {
             try {
                 // Fetch basic locations
                 const allLocations = await getLocations();
-                setLocations(allLocations);
+
+                let initialVisited = new Set<string>();
 
                 // Fetch visited if logged in
                 if (user?.id) {
                     try {
                         const visitedList = await getVisitedLocations(user.id);
                         if (Array.isArray(visitedList)) {
-                            // visitedList is Array of { locationId: string, ... }
-                            setVisitedIds(new Set(visitedList.map((v: any) => v.id || v.locationId)));
+                            // visitedList is Array of { locationId: string, ... } or LocationData depending on API fix
+                            initialVisited = new Set(visitedList.map((v: any) => v.id || v.locationId));
                         }
                     } catch (e) {
                         console.error("Failed to fetch visited locations", e);
                     }
                 }
+
+                // Batch updates to avoid race conditions
+                setLocations(allLocations);
+                setVisitedIds(initialVisited);
+                setIsReady(true);
             } catch (error) {
                 console.error('Failed to fetch map data', error);
             }
@@ -93,7 +105,7 @@ export const MapScreen = () => {
 
     // Proximity Check Logic (useEffect to prevent stale closures)
     useEffect(() => {
-        if (!userLocation || locations.length === 0) return;
+        if (!isReady || !userLocation || locations.length === 0) return;
 
         const checkMyProximity = async () => {
             locations.forEach(async (loc) => {
@@ -129,6 +141,7 @@ export const MapScreen = () => {
                     // 3. Register visit on backend (Check-in)
                     try {
                         await getLocationById(loc.id);
+                        if (refreshUser) await refreshUser(); // Refresh Global User State (points)
                         Alert.alert("Gratulacje!", `Odkryłeś nowe miejsce: ${loc.name}`);
                     } catch (e) {
                         console.error("Check-in failed", e);
