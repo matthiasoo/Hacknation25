@@ -28,9 +28,9 @@ const swaggerOptions = {
     definition: {
         openapi: '3.0.0',
         info: {
-            title: 'Bydgoszcz – Ścieżki Pamięci 2.0 API',
+            title: 'BydgoszczGo!',
             version: '1.0.0',
-            description: 'API for Historical Tourism App',
+            description: 'API dla BydgoszczGo!',
         },
         servers: [
             {
