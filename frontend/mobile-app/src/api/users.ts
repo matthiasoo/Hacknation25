@@ -8,5 +8,5 @@ export const getMyProfile = async () => {
 
 export const getVisitedLocations = async (userId: string): Promise<LocationData[]> => {
     const { data } = await client.get(`/users/${userId}/visited`);
-    return data.data.visited;
+    return data.data.visited.map((visit: any) => visit.location);
 };

@@ -42,6 +42,8 @@ export const MapScreen = () => {
     const [visitedIds, setVisitedIds] = useState<Set<string>>(new Set());
     const [userLocation, setUserLocation] = useState<Location.LocationObject | null>(null);
 
+    console.log('Visited IDs:', [...visitedIds]);
+
     // 1. Get User Location Permission & Start Watcher
     useEffect(() => {
         (async () => {
@@ -54,11 +56,10 @@ export const MapScreen = () => {
             // Start watching position
             await Location.watchPositionAsync({
                 accuracy: Location.Accuracy.High,
-                timeInterval: 5000,
-                distanceInterval: 10
+                timeInterval: 2000,
+                distanceInterval: 5
             }, (newLoc) => {
                 setUserLocation(newLoc);
-                checkProximity(newLoc);
             });
         })();
     }, []);
@@ -77,7 +78,7 @@ export const MapScreen = () => {
                         const visitedList = await getVisitedLocations(user.id);
                         if (Array.isArray(visitedList)) {
                             // visitedList is Array of { locationId: string, ... }
-                            setVisitedIds(new Set(visitedList.map((v: any) => v.locationId)));
+                            setVisitedIds(new Set(visitedList.map((v: any) => v.id || v.locationId)));
                         }
                     } catch (e) {
                         console.error("Failed to fetch visited locations", e);
@@ -90,43 +91,54 @@ export const MapScreen = () => {
         loadData();
     }, [user]);
 
-    // Proximity Check Logic
-    const checkProximity = async (currentLoc: Location.LocationObject) => {
-        if (!locations.length) return;
+    // Proximity Check Logic (useEffect to prevent stale closures)
+    useEffect(() => {
+        if (!userLocation || locations.length === 0) return;
 
-        locations.forEach(async (loc) => {
-            // Skip if already visited
-            if (visitedIds.has(loc.id)) return;
+        const checkMyProximity = async () => {
+            locations.forEach(async (loc) => {
+                // Skip if already visited
+                if (visitedIds.has(loc.id)) return;
 
-            const dist = getDistance(
-                currentLoc.coords.latitude, currentLoc.coords.longitude,
-                loc.latitude, loc.longitude
-            );
+                const dist = getDistance(
+                    userLocation.coords.latitude, userLocation.coords.longitude,
+                    loc.latitude, loc.longitude
+                );
 
-            // Threshold: 50 meters
-            if (dist < 50) {
-                // 1. Mark as visited locally immediately
-                setVisitedIds(prev => new Set(prev).add(loc.id));
+                // Threshold: 50 meters
+                if (dist < 50) {
+                    console.log(`Discovered: ${loc.name}`);
 
-                // 2. Send Notification
-                await Notifications.scheduleNotificationAsync({
-                    content: {
-                        title: "Jesteś blisko!",
-                        body: `Odkryłeś: ${loc.name}`,
-                        data: { locationId: loc.id },
-                    },
-                    trigger: null,
-                });
+                    // 1. Mark as visited locally immediately
+                    setVisitedIds(prev => {
+                        const next = new Set(prev);
+                        next.add(loc.id);
+                        return next;
+                    });
 
-                // 3. Register visit on backend (Check-in)
-                try {
-                    await getLocationById(loc.id);
-                } catch (e) {
-                    console.error("Check-in failed", e);
+                    // 2. Send Notification
+                    await Notifications.scheduleNotificationAsync({
+                        content: {
+                            title: "Jesteś blisko!",
+                            body: `Odkryłeś: ${loc.name}`,
+                            data: { locationId: loc.id },
+                        },
+                        trigger: null,
+                    });
+
+                    // 3. Register visit on backend (Check-in)
+                    try {
+                        await getLocationById(loc.id);
+                        Alert.alert("Gratulacje!", `Odkryłeś nowe miejsce: ${loc.name}`);
+                    } catch (e) {
+                        console.error("Check-in failed", e);
+                    }
                 }
-            }
-        });
-    };
+            });
+        };
+
+        checkMyProximity();
+    }, [userLocation, locations, visitedIds]);
 
     const handleMarkerPress = (location: LocationData) => {
         navigation.navigate('LocationDetail', { locationId: location.id });
@@ -146,26 +158,28 @@ export const MapScreen = () => {
                     longitudeDelta: 0.05,
                 }}
             >
-                {locations.map((loc) => (
-                    <Marker
-                        key={loc.id}
-                        coordinate={{ latitude: loc.latitude, longitude: loc.longitude }}
-                        title={loc.name}
-                        description={loc.description}
-                        onCalloutPress={() => handleMarkerPress(loc)}
-                        // Green if visited, Blue (Primary) if not
-                        pinColor={visitedIds.has(loc.id) ? theme.colors.success : theme.colors.primary}
-                    >
-                        <Callout tooltip>
-                            <View style={styles.callout}>
-                                <Text style={styles.calloutTitle}>
-                                    {loc.name} {visitedIds.has(loc.id) ? '✓' : ''}
-                                </Text>
-                                <Text style={styles.calloutDesc}>Click to view details</Text>
-                            </View>
-                        </Callout>
-                    </Marker>
-                ))}
+                {locations.map((loc) => {
+                    const isVisited = visitedIds.has(loc.id);
+                    return (
+                        <Marker
+                            key={`${loc.id}-${isVisited}`}
+                            coordinate={{ latitude: loc.latitude, longitude: loc.longitude }}
+                            title={loc.name}
+                            description={loc.description}
+                            onCalloutPress={() => handleMarkerPress(loc)}
+                            pinColor={isVisited ? theme.colors.success : theme.colors.primary}
+                        >
+                            <Callout tooltip>
+                                <View style={styles.callout}>
+                                    <Text style={styles.calloutTitle}>
+                                        {loc.name} {isVisited ? '✓' : ''}
+                                    </Text>
+                                    <Text style={styles.calloutDesc}>Click to view details</Text>
+                                </View>
+                            </Callout>
+                        </Marker>
+                    );
+                })}
             </MapView>
         </View>
     );
